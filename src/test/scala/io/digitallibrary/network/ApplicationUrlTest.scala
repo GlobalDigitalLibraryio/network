@@ -32,6 +32,11 @@ class ApplicationUrlTest extends UnitSuite {
     ApplicationUrl.get should equal(s"${scheme}://${servername}:${port}${path}/")
   }
 
+  test("That applicationHost returns default when header is not defined") {
+    ApplicationUrl.set(httpRequest)
+    ApplicationUrl.getHost should equal (s"${scheme}://${servername}:${port}")
+  }
+
   test("That applicationUrl returns http wnen header is not defined and port is 80") {
     when(httpRequest.getScheme).thenReturn("http")
     when(httpRequest.getServerPort).thenReturn(80)
@@ -39,11 +44,25 @@ class ApplicationUrlTest extends UnitSuite {
     ApplicationUrl.get should equal(s"http://${servername}${path}/")
   }
 
+  test("That applicationHost returns http when header is not defined and port is 80") {
+    when(httpRequest.getScheme).thenReturn("http")
+    when(httpRequest.getServerPort).thenReturn(80)
+    ApplicationUrl.set(httpRequest)
+    ApplicationUrl.getHost should equal(s"http://$servername")
+  }
+
   test("That applicationUrl returns https wnen header is not defined and port is 443") {
     when(httpRequest.getScheme).thenReturn("https")
     when(httpRequest.getServerPort).thenReturn(443)
     ApplicationUrl.set(httpRequest)
     ApplicationUrl.get should equal(s"https://${servername}${path}/")
+  }
+
+  test("That applicationHost returns https when header is not defined and port is 443") {
+    when(httpRequest.getScheme).thenReturn("https")
+    when(httpRequest.getServerPort).thenReturn(443)
+    ApplicationUrl.set(httpRequest)
+    ApplicationUrl.getHost should equal(s"https://$servername")
   }
 
   test("That applicationUrl returns http when only x-forwarded-proto header and it is http") {

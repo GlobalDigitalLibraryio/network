@@ -19,6 +19,7 @@ object ApplicationUrl {
   val HTTPS_PORT = 443
 
   val applicationUrl = new ThreadLocal[String]
+  val applicationHost = new ThreadLocal[String]
 
   def set(request: HttpServletRequest) {
     val xForwardedProtoHeaderProtocol = Option(request.getHeader(X_FORWARDED_PROTO_HEADER))
@@ -27,13 +28,17 @@ object ApplicationUrl {
 
     val chosenProtocol = List(forwardedHeaderProtocol, xForwardedProtoHeaderProtocol, schemeProtocol).find(x => x.isDefined && (x.get.equals(HTTP) || x.get.equals(HTTPS))).flatten
 
-    if (chosenProtocol.isDefined)
+    if (chosenProtocol.isDefined) {
       applicationUrl.set(s"${chosenProtocol.get}://${request.getServerName}${request.getServletPath}/")
-    else
+      applicationHost.set(s"${chosenProtocol.get}://${request.getServerName}")
+    } else {
       applicationUrl.set(s"${request.getScheme}://${request.getServerName}:${request.getServerPort}${request.getServletPath}/")
+      applicationHost.set(s"${request.getScheme}://${request.getServerName}:${request.getServerPort}")
+    }
   }
 
   def get: String = applicationUrl.get
+  def getHost: String = applicationHost.get
 
   def clear(): Unit = applicationUrl.remove()
 }

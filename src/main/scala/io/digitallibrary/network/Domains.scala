@@ -10,7 +10,7 @@ package io.digitallibrary.network
 object Domains {
 
   def get(environment: String): String = Map(
-    "local" -> "http://proxy.gdl-local",
+    "local" -> "http://local.digitallibrary.io",
     "prod" -> "http://api.digitallibrary.io"
   ).getOrElse(environment, s"http://$environment.api.digitallibrary.io")
 

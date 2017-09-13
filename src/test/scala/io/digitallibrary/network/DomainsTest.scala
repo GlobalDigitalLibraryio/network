@@ -9,8 +9,8 @@ package io.digitallibrary.network
 
 class DomainsTest extends UnitSuite {
 
-  test("That local env returns localhost") {
-    Domains.get("local") should equal("http://proxy.gdl-local")
+  test("That local env returns local.digitallibrary.io") {
+    Domains.get("local") should equal("http://local.digitallibrary.io")
   }
 
   test("That prod env returns prod") {

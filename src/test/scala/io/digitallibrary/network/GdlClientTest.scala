@@ -51,6 +51,36 @@ class GdlClientTest extends UnitSuite with GdlClient {
     result.failure.exception.getMessage should equal("Received error 123 status when calling someUrl. Body was body-with-error")
   }
 
+  test("that fetchBytes returns a Failure with HttpRequestException Failure when receiving a http-error") {
+    val httpRequestMock = mock[HttpRequest]
+    val httpResponseMock = mock[HttpResponse[Array[Byte]]]
+
+    when(httpRequestMock.asBytes).thenReturn(httpResponseMock)
+    when(httpRequestMock.url).thenReturn("someUrl")
+
+    when(httpResponseMock.code).thenReturn(123)
+    when(httpResponseMock.statusLine).thenReturn("status")
+
+    when(httpResponseMock.isError).thenReturn(true)
+
+    val result = gdlClient.fetchBytes(httpRequestMock)
+    result should be a 'failure
+    result.failure.exception.getMessage should equal ("Received error 123 status when calling someUrl.")
+  }
+
+  test("that fetchBytes returns a Success with bytes when all ok") {
+    val httpRequestMock = mock[HttpRequest]
+    val httpResponseMock = mock[HttpResponse[Array[Byte]]]
+
+    when(httpRequestMock.asBytes).thenReturn(httpResponseMock)
+    when(httpResponseMock.isError).thenReturn(false)
+    when(httpResponseMock.body).thenReturn("This worked nicely".getBytes)
+
+    val result = gdlClient.fetchBytes(httpRequestMock)
+    result should be a 'success
+    result.get should equal ("This worked nicely".getBytes)
+  }
+
   test("That a HttpRequestException is returned when response is not parseable") {
     val unparseableResponse = "This string cannot be parsed to a TestObject"
     val httpRequestMock = mock[HttpRequest]

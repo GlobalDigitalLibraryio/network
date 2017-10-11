@@ -20,6 +20,14 @@ trait GdlClient {
   class GdlClient extends LazyLogging {
     implicit val formats = org.json4s.DefaultFormats
 
+    def fetchBytes(request: HttpRequest): Try[Array[Byte]] = {
+      Try(addCorrelationId(request).asBytes).flatMap(response => {
+        if(response.isError)
+          Failure(new HttpRequestException(s"Received error ${response.code} ${response.statusLine} when calling ${request.url}."))
+         else
+          Success(response.body)
+      })
+    }
 
     def fetch[A](request: HttpRequest)(implicit mf: Manifest[A]): Try[A] = {
       doFetch(

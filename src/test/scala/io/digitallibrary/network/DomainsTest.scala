@@ -14,10 +14,10 @@ class DomainsTest extends UnitSuite {
   }
 
   test("That prod env returns prod") {
-    Domains.get("prod") should equal("http://api.digitallibrary.io")
+    Domains.get("prod") should equal("https://api.digitallibrary.io")
   }
 
   test("That ant other env returns any other env") {
-    Domains.get("anyotherenv") should equal("http://anyotherenv.api.digitallibrary.io")
+    Domains.get("anyotherenv") should equal("https://anyotherenv.api.digitallibrary.io")
   }
 }

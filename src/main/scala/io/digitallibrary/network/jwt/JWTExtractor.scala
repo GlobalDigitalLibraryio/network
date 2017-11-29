@@ -23,25 +23,20 @@ class JWTExtractor(request: HttpServletRequest) {
   private val jwtClaims = Option(request.getHeader("Authorization")).flatMap(authHeader => {
     val jwt = authHeader.replace("Bearer ", "")
     jwt match {
-      case JsonWebToken(header, claimsSet, signature) => {
-        Try(read[JWTClaims](claimsSet.asJsonString)) match {
-          case Success(claims) => Some(claims)
-          case Failure(_) => None
-        }
-      }
+      case JsonWebToken(header, claimsSet, signature) => Some(JWTClaims(claimsSet))
       case _ => None
     }
   })
 
   def extractUserId(): Option[String] = {
-    jwtClaims.flatMap(x => x.app_metadata).map(_.ndla_id)
+    jwtClaims.flatMap(_.user_id)
   }
 
   def extractUserRoles(): List[String] = {
-    jwtClaims.flatMap(_.app_metadata).map(_.roles).getOrElse(List.empty)
+    jwtClaims.map(_.scope).getOrElse(List.empty)
   }
 
   def extractUserName(): Option[String] = {
-    jwtClaims.flatMap(_.name)
+    jwtClaims.flatMap(_.user_name)
   }
 }

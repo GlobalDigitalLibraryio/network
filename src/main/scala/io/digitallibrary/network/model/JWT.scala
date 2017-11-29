@@ -7,12 +7,35 @@
 
 package io.digitallibrary.network.model
 
-case class JWTClaims(name: Option[String],
-                             iss: Option[String],
-                             sub: Option[String],
-                             aud: Option[String],
-                             exp: Option[Long],
-                             iat: Option[Long],
-                             app_metadata: Option[JWTAppMetadata])
+import authentikat.jwt.JwtClaimsSet
+import org.json4s.native.JsonMethods.parse
 
-case class JWTAppMetadata(ndla_id: String, roles: List[String])
+case class JWTClaims(iss: Option[String],
+                     sub: Option[String],
+                     aud: Option[String],
+                     iat: Option[Long],
+                     exp: Option[Long],
+                     azp: Option[String],
+                     scope: List[String],
+                     user_id: Option[String],
+                     user_name: Option[String]
+                    )
+
+object JWTClaims {
+  implicit val formats = org.json4s.DefaultFormats
+  val gdl_id_key = "https://digitallibrary.io/gdl_id"
+  val user_name_key = "https://digitallibrary.io/user_name"
+
+  def apply(claims: JwtClaimsSet): JWTClaims = {
+    val content = parse(claims.asJsonString).extract[Map[String, String]]
+    new JWTClaims(content.get("iss"),
+      content.get("sub"),
+      content.get("aud"),
+      content.get("iat").asInstanceOf[Option[Long]],
+      content.get("exp").asInstanceOf[Option[Long]],
+      content.get("azp"),
+      content.get("scope").map(_.split(' ').toList).getOrElse(List.empty),
+      content.get(gdl_id_key),
+      content.get(user_name_key))
+  }
+}

@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest
 import authentikat.jwt.JsonWebToken
 import io.digitallibrary.network.model.JWTClaims
 
-import scala.util.Properties
+import scala.util.{Failure, Properties, Success, Try}
 
 
 class JWTExtractor(request: HttpServletRequest) {
@@ -22,7 +22,12 @@ class JWTExtractor(request: HttpServletRequest) {
   private val jwtClaims = Option(request.getHeader("Authorization")).flatMap(authHeader => {
     val jwt = authHeader.replace("Bearer ", "")
     jwt match {
-      case JsonWebToken(header, claimsSet, signature) => Some(JWTClaims(claimsSet))
+      case JsonWebToken(header, claimsSet, signature) => {
+        Try(JWTClaims(claimsSet)) match {
+          case Success(claims) => Some(claims)
+          case Failure(_) => None
+        }
+      }
       case _ => None
     }
   })

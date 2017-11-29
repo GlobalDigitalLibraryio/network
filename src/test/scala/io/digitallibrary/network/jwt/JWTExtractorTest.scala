@@ -44,16 +44,16 @@ class JWTExtractorTest extends UnitSuite {
   }
 
   test("That all roles are extracted") {
-    val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiRG9uYWxkIER1Y2siLCJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYWJjIiwiZXhwIjoxNDg2MDcwMDYzLCJpYXQiOjE0ODYwMzQwNjMsInNjb3BlIjoicm9sZTEgcm9sZTIgcm9sZTMifQ.ln8BmNEyAyjk-o-PH9q8C_fMS8laPrgEdJ_-Qf5-8G4"
+    val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiRG9uYWxkIER1Y2siLCJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYWJjIiwiZXhwIjoxNDg2MDcwMDYzLCJpYXQiOjE0ODYwMzQwNjMsInNjb3BlIjoiaW1hZ2VzLWxvY2FsOndyaXRlIGltYWdlcy1sb2NhbDpyZWFkIGltYWdlcy1sb2NhbDphbGwifQ.AgDqNUZeey4_FAKpuhzUADlB678sGtp_-T0KR6zgLfk"
     val request = mock[HttpServletRequest]
     when(request.getHeader("Authorization")).thenReturn(s"Bearer $token")
 
     val jwtExtractor = new JWTExtractor(request)
     val roles = jwtExtractor.extractUserRoles()
     roles.size should be (3)
-    roles.contains("role1") should be (true)
-    roles.contains("role2") should be (true)
-    roles.contains("role3") should be (true)
+    roles.contains("images:write") should be (true)
+    roles.contains("images:read") should be (true)
+    roles.contains("images:all") should be (true)
   }
 
   test("That name is extracted") {

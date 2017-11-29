@@ -11,6 +11,9 @@ Library that provides common network functionality to GDL components.
 ## Run tests
     sbt test
 
+## Publish local for use in other components
+	sbt publishLocal
+
 ## Build
     ./build.sh
 

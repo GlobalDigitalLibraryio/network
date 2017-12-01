@@ -16,6 +16,7 @@ case class JWTClaims(iss: Option[String],
                      iat: Option[Long],
                      exp: Option[Long],
                      azp: Option[String],
+                     gty: Option[String],
                      scope: List[String],
                      user_id: Option[String],
                      user_name: Option[String]
@@ -34,6 +35,7 @@ object JWTClaims {
       content.get("iat").asInstanceOf[Option[Long]],
       content.get("exp").asInstanceOf[Option[Long]],
       content.get("azp"),
+      content.get("gty"),
       content.get("scope").map(_.split(' ').toList).getOrElse(List.empty),
       content.get(gdl_id_key),
       content.get(user_name_key))

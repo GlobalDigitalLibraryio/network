@@ -27,6 +27,20 @@ class JWTExtractorTest extends UnitSuite {
 
   // Tokens can be decoded at jwt.io
 
+  test("That tokens with different content is interpreted correctly") {
+    val request = mock[HttpServletRequest]
+
+    val implicitToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwczovL2RpZ2l0YWxsaWJyYXJ5LmlvL2dkbF9pZCI6ImFiYzEyMyIsImlzcyI6Imh0dHBzOi8vc29tZS1kb21haW4vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwxMjMiLCJhdWQiOiJhc2RmYSIsImV4cCI6MTQ4NjA3MDA2MywiaWF0IjoxNDg2MDM0MDYzfQ.sgikHG1tGpMKfRd3rv_sWQez-JcTrhKPdbJv3os1OI0"
+    when(request.getHeader("Authorization")).thenReturn(s"Bearer $implicitToken")
+    val jWTExtractorImplicit = new JWTExtractor(request)
+    jWTExtractorImplicit.extractUserId() should be (Some("abc123"))
+
+    val clientSecretToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpZ2l0YWxsaWJyYXJ5LmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJZdU9EU0NoeVF6SHZGdk5hSng1NTJzTnVDUERKaE51ckBjbGllbnRzIiwiYXVkIjoiZ2RsX3N5c3RlbSIsImlhdCI6MTUxMjEzMDk3MCwiZXhwIjoxNTEyMjE3MzcwLCJzY29wZSI6ImltYWdlcy1sb2NhbDp3cml0ZSBpbWFnZXMtdGVzdDp3cml0ZSBpbWFnZXMtcHJvZDp3cml0ZSBpbWFnZXMtc3RhZ2luZzp3cml0ZSIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.7hsor8kGrXCDXgOsm8PPShbSCzaySPL-yhKyILXJePo"
+    when(request.getHeader("Authorization")).thenReturn(s"Bearer $clientSecretToken")
+    val jWTExtractorClient = new JWTExtractor(request)
+    jWTExtractorClient.extractUserRoles().size should be (1)
+  }
+
   test("That userId is None when no app-metadata is present") {
     val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYXNkZmFzZGYiLCJleHAiOjE0ODYwNzAwNjMsImlhdCI6MTQ4NjAzNDA2M30.KEjhvPUooLSFExTrv8XsioJks-NAMzYZjGn32MABvg4"
     val request = mock[HttpServletRequest]

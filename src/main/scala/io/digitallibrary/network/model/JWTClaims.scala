@@ -28,7 +28,7 @@ object JWTClaims {
 
   def apply(claims: JwtClaimsSet): JWTClaims = {
     val content = parse(claims.asJsonString).extract[Map[String, String]]
-    new JWTClaims(content.get("iss"),
+    JWTClaims(content.get("iss"),
       content.get("sub"),
       content.get("aud"),
       content.get("iat").asInstanceOf[Option[Long]],

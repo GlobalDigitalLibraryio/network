@@ -25,6 +25,22 @@ class JWTExtractorTest extends UnitSuite {
     new JWTExtractor(request).extractUserId() should be (None)
   }
 
+  // Tokens can be decoded at jwt.io
+
+  test("That tokens with different content is interpreted correctly") {
+    val request = mock[HttpServletRequest]
+
+    val implicitToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwczovL2RpZ2l0YWxsaWJyYXJ5LmlvL2dkbF9pZCI6ImFiYzEyMyIsImlzcyI6Imh0dHBzOi8vc29tZS1kb21haW4vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwxMjMiLCJhdWQiOiJhc2RmYSIsImV4cCI6MTQ4NjA3MDA2MywiaWF0IjoxNDg2MDM0MDYzfQ.sgikHG1tGpMKfRd3rv_sWQez-JcTrhKPdbJv3os1OI0"
+    when(request.getHeader("Authorization")).thenReturn(s"Bearer $implicitToken")
+    val jWTExtractorImplicit = new JWTExtractor(request)
+    jWTExtractorImplicit.extractUserId() should be (Some("abc123"))
+
+    val clientSecretToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpZ2l0YWxsaWJyYXJ5LmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJZdU9EU0NoeVF6SHZGdk5hSng1NTJzTnVDUERKaE51ckBjbGllbnRzIiwiYXVkIjoiZ2RsX3N5c3RlbSIsImlhdCI6MTUxMjEzMDk3MCwiZXhwIjoxNTEyMjE3MzcwLCJzY29wZSI6ImltYWdlcy1sb2NhbDp3cml0ZSBpbWFnZXMtdGVzdDp3cml0ZSBpbWFnZXMtcHJvZDp3cml0ZSBpbWFnZXMtc3RhZ2luZzp3cml0ZSIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.7hsor8kGrXCDXgOsm8PPShbSCzaySPL-yhKyILXJePo"
+    when(request.getHeader("Authorization")).thenReturn(s"Bearer $clientSecretToken")
+    val jWTExtractorClient = new JWTExtractor(request)
+    jWTExtractorClient.extractUserRoles().size should be (1)
+  }
+
   test("That userId is None when no app-metadata is present") {
     val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYXNkZmFzZGYiLCJleHAiOjE0ODYwNzAwNjMsImlhdCI6MTQ4NjAzNDA2M30.KEjhvPUooLSFExTrv8XsioJks-NAMzYZjGn32MABvg4"
     val request = mock[HttpServletRequest]
@@ -33,7 +49,7 @@ class JWTExtractorTest extends UnitSuite {
   }
 
   test("That JWTExtractor.extractUserId is set even if roles are not present") {
-    val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfbWV0YWRhdGEiOnsibmRsYV9pZCI6ImFiYzEyMyJ9LCJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYXNkZmEiLCJleHAiOjE0ODYwNzAwNjMsImlhdCI6MTQ4NjAzNDA2M30.HT3SUUZe52dC4y1FPJb3gpKA5n56WxVM4CmEZDgmpko"
+    val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJodHRwczovL2RpZ2l0YWxsaWJyYXJ5LmlvL2dkbF9pZCI6ImFiYzEyMyIsImlzcyI6Imh0dHBzOi8vc29tZS1kb21haW4vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwxMjMiLCJhdWQiOiJhc2RmYSIsImV4cCI6MTQ4NjA3MDA2MywiaWF0IjoxNDg2MDM0MDYzfQ.sgikHG1tGpMKfRd3rv_sWQez-JcTrhKPdbJv3os1OI0"
     val request = mock[HttpServletRequest]
     when(request.getHeader("Authorization")).thenReturn(s"Bearer $token")
     val jWTExtractor = new JWTExtractor(request)
@@ -42,20 +58,20 @@ class JWTExtractorTest extends UnitSuite {
   }
 
   test("That all roles are extracted") {
-    val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfbWV0YWRhdGEiOnsicm9sZXMiOlsicm9sZTEiLCJyb2xlMiIsInJvbGUzIl0sIm5kbGFfaWQiOiJhYmMxMjMifSwibmFtZSI6IkRvbmFsZCBEdWNrIiwiaXNzIjoiaHR0cHM6Ly9zb21lLWRvbWFpbi8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDEyMyIsImF1ZCI6ImFiYyIsImV4cCI6MTQ4NjA3MDA2MywiaWF0IjoxNDg2MDM0MDYzfQ.qu8ecEgZiFN8QFL3Jq6SFNL3FMxVvTZTYv7SZ2moyJw"
+    val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiRG9uYWxkIER1Y2siLCJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYWJjIiwiZXhwIjoxNDg2MDcwMDYzLCJpYXQiOjE0ODYwMzQwNjMsInNjb3BlIjoiaW1hZ2VzLWxvY2FsOndyaXRlIGltYWdlcy1sb2NhbDpyZWFkIGltYWdlcy1sb2NhbDphbGwifQ.AgDqNUZeey4_FAKpuhzUADlB678sGtp_-T0KR6zgLfk"
     val request = mock[HttpServletRequest]
     when(request.getHeader("Authorization")).thenReturn(s"Bearer $token")
 
     val jwtExtractor = new JWTExtractor(request)
     val roles = jwtExtractor.extractUserRoles()
     roles.size should be (3)
-    roles.contains("role1") should be (true)
-    roles.contains("role2") should be (true)
-    roles.contains("role3") should be (true)
+    roles.contains("images:write") should be (true)
+    roles.contains("images:read") should be (true)
+    roles.contains("images:all") should be (true)
   }
 
   test("That name is extracted") {
-    val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfbWV0YWRhdGEiOnsicm9sZXMiOlsicm9sZTEiLCJyb2xlMiIsInJvbGUzIl0sIm5kbGFfaWQiOiJhYmMxMjMifSwibmFtZSI6IkRvbmFsZCBEdWNrIiwiaXNzIjoiaHR0cHM6Ly9zb21lLWRvbWFpbi8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDEyMyIsImF1ZCI6ImFiYyIsImV4cCI6MTQ4NjA3MDA2MywiaWF0IjoxNDg2MDM0MDYzfQ.qu8ecEgZiFN8QFL3Jq6SFNL3FMxVvTZTYv7SZ2moyJw"
+    val token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZSI6InJvbGUxIHJvbGUyIHJvbGUzIiwiaHR0cHM6Ly9kaWdpdGFsbGlicmFyeS5pby9nZGxfaWQiOiJhYmMxMjMiLCJodHRwczovL2RpZ2l0YWxsaWJyYXJ5LmlvL3VzZXJfbmFtZSI6IkRvbmFsZCBEdWNrIiwiaXNzIjoiaHR0cHM6Ly9zb21lLWRvbWFpbi8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDEyMyIsImF1ZCI6ImFiYyIsImV4cCI6MTQ4NjA3MDA2MywiaWF0IjoxNDg2MDM0MDYzfQ.gbMF8F1LLMUVroXbmStL02R6EPZjeZkbowseE5SAN9U"
     val request = mock[HttpServletRequest]
     when(request.getHeader("Authorization")).thenReturn(s"Bearer $token")
 

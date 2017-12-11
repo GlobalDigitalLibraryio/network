@@ -11,9 +11,8 @@ import javax.servlet.http.HttpServletRequest
 
 import authentikat.jwt.JsonWebToken
 import io.digitallibrary.network.model.JWTClaims
-import org.json4s.native.Serialization.read
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Properties, Success, Try}
 
 
 class JWTExtractor(request: HttpServletRequest) {
@@ -24,7 +23,7 @@ class JWTExtractor(request: HttpServletRequest) {
     val jwt = authHeader.replace("Bearer ", "")
     jwt match {
       case JsonWebToken(header, claimsSet, signature) => {
-        Try(read[JWTClaims](claimsSet.asJsonString)) match {
+        Try(JWTClaims(claimsSet)) match {
           case Success(claims) => Some(claims)
           case Failure(_) => None
         }
@@ -34,14 +33,18 @@ class JWTExtractor(request: HttpServletRequest) {
   })
 
   def extractUserId(): Option[String] = {
-    jwtClaims.flatMap(x => x.app_metadata).map(_.ndla_id)
+    jwtClaims.flatMap(_.user_id)
   }
 
   def extractUserRoles(): List[String] = {
-    jwtClaims.flatMap(_.app_metadata).map(_.roles).getOrElse(List.empty)
+    val raw = jwtClaims.map(_.scope).getOrElse(List.empty)
+    val env = Properties.envOrElse("GDL_ENVIRONMENT", "local")
+    val envSuffix = s"-$env:"
+    val roles = raw.filter(_.contains(envSuffix)).map(_.replace(envSuffix, ":"))
+    roles
   }
 
   def extractUserName(): Option[String] = {
-    jwtClaims.flatMap(_.name)
+    jwtClaims.flatMap(_.user_name)
   }
 }

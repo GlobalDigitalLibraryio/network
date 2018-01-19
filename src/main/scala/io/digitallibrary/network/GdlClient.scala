@@ -48,12 +48,12 @@ trait GdlClient {
 
     private def doFetch[A](request: HttpRequest)(implicit mf: Manifest[A]): Try[A] = {
       for {
-        httpResponse <- doRequest(request)
+        httpResponse <- doRequestAsString(request)
         bodyObject <- parseResponse[A](httpResponse)(mf)
       } yield bodyObject
     }
 
-    private def doRequest(request: HttpRequest): Try[HttpResponse[String]] = {
+    def doRequestAsString(request: HttpRequest): Try[HttpResponse[String]] = {
       Try(request.asString).flatMap(response => {
         response.isError match {
           case false => Success(response)
@@ -64,7 +64,7 @@ trait GdlClient {
       })
     }
 
-    private def parseResponse[A](response: HttpResponse[String])(implicit mf: Manifest[A]): Try[A] = {
+    def parseResponse[A](response: HttpResponse[String])(implicit mf: Manifest[A]): Try[A] = {
       Try(parse(response.body).camelizeKeys.extract[A]) match {
         case Success(extracted) => Success(extracted)
         case Failure(ex) => {

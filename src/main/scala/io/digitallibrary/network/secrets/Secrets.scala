@@ -24,7 +24,7 @@ object Secrets {
 
   def readSecrets(secretsFile: String, secretsKeysToRead: Set[String], readDBCredentials: Boolean = true): Try[Map[String, String]] = {
     val keysToRead = secretsKeysToRead ++ (if (readDBCredentials) DBKeys else Set())
-    new Secrets(amazonClient, Properties.envOrElse("GDL_ENVIRONMENT", "test"), secretsFile, keysToRead).readSecrets()
+    new Secrets(amazonClient, Properties.envOrElse("GDL_ENVIRONMENT", "local"), secretsFile, keysToRead).readSecrets()
   }
 }
 

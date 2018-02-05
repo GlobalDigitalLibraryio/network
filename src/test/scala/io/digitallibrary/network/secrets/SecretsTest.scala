@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.{S3Object, S3ObjectInputStream}
 import io.digitallibrary.network.UnitSuite
+import io.digitallibrary.network.secrets.Secrets.DBKeys
 import org.apache.http.client.methods.HttpRequestBase
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -49,12 +50,12 @@ class SecretsTest extends UnitSuite {
     secretsAttempt match {
       case Failure(err) => fail(err)
       case Success(secrets) => {
-        secrets(PropertyKeys.MetaUserNameKey) should equal (Some("database-user"))
-        secrets(PropertyKeys.MetaPasswordKey) should equal (Some("database-password"))
-        secrets(PropertyKeys.MetaResourceKey) should equal (Some("database-name"))
-        secrets(PropertyKeys.MetaServerKey) should equal (Some("database-host"))
-        secrets(PropertyKeys.MetaPortKey) should equal (Some("1234"))
-        secrets(PropertyKeys.MetaSchemaKey) should equal (Some("database-schema"))
+        secrets(PropertyKeys.MetaUserNameKey) should equal ("database-user")
+        secrets(PropertyKeys.MetaPasswordKey) should equal ("database-password")
+        secrets(PropertyKeys.MetaResourceKey) should equal ("database-name")
+        secrets(PropertyKeys.MetaServerKey) should equal ("database-host")
+        secrets(PropertyKeys.MetaPortKey) should equal ("1234")
+        secrets(PropertyKeys.MetaSchemaKey) should equal ("database-schema")
         secrets.get("GOOGLE_API_KEY") should equal (None)
       }
     }
@@ -67,13 +68,13 @@ class SecretsTest extends UnitSuite {
     secretsAttempt match {
       case Failure(err) => fail(err)
       case Success(secrets) => {
-        secrets(PropertyKeys.MetaUserNameKey) should equal (Some("database-user"))
-        secrets(PropertyKeys.MetaPasswordKey) should equal (Some("database-password"))
-        secrets(PropertyKeys.MetaResourceKey) should equal (Some("database-name"))
-        secrets(PropertyKeys.MetaServerKey) should equal (Some("database-host"))
-        secrets(PropertyKeys.MetaPortKey) should equal (Some("1234"))
-        secrets(PropertyKeys.MetaSchemaKey) should equal (Some("database-schema"))
-        secrets("GOOGLE_API_KEY") should equal (Some("ABCD1234"))
+        secrets(PropertyKeys.MetaUserNameKey) should equal ("database-user")
+        secrets(PropertyKeys.MetaPasswordKey) should equal ("database-password")
+        secrets(PropertyKeys.MetaResourceKey) should equal ("database-name")
+        secrets(PropertyKeys.MetaServerKey) should equal ("database-host")
+        secrets(PropertyKeys.MetaPortKey) should equal ("1234")
+        secrets(PropertyKeys.MetaSchemaKey) should equal ("database-schema")
+        secrets("GOOGLE_API_KEY") should equal ("ABCD1234")
       }
     }
   }

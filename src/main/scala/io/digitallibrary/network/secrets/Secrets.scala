@@ -19,10 +19,10 @@ object Secrets {
   private val amazonClient = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
   val DBKeys = Set(MetaUserNameKey, MetaPasswordKey, MetaResourceKey, MetaServerKey, MetaPortKey, MetaSchemaKey)
 
-  def readSecrets(secretsFile: String): Try[Map[String, Option[String]]] =
+  def readSecrets(secretsFile: String): Try[Map[String, String]] =
     new Secrets(amazonClient, Properties.envOrElse("GDL_ENVIRONMENT", "local"), secretsFile, DBKeys).readSecrets()
 
-  def readSecrets(secretsFile: String, secretsKeysToRead: Set[String], readDBCredentials: Boolean = true): Try[Map[String, Option[String]]] = {
+  def readSecrets(secretsFile: String, secretsKeysToRead: Set[String], readDBCredentials: Boolean = true): Try[Map[String, String]] = {
     val keysToRead = secretsKeysToRead ++ (if (readDBCredentials) DBKeys else Set())
     new Secrets(amazonClient, Properties.envOrElse("GDL_ENVIRONMENT", "local"), secretsFile, keysToRead).readSecrets()
   }
@@ -39,22 +39,21 @@ object PropertyKeys {
 
 class Secrets(amazonClient: AmazonS3, environment: String, secretsFile: String, secretKeysToRead: Set[String]) {
 
-  def readSecrets(): Try[Map[String, Option[String]]] = {
+  def readSecrets(): Try[Map[String, String]] = {
     implicit val formats = org.json4s.DefaultFormats
 
     environment match {
       case "local" => Success(Map())
-      case _ => {
-        for {
-          s3Object <- Try(amazonClient.getObject(s"$environment.secrets.gdl", secretsFile))
-          fileContent <- Try(Source.fromInputStream(s3Object.getObjectContent).getLines().mkString)
-          allSecrets <- Try(read[Map[String, String]](fileContent))
-          secrets <- Try(secretKeysToRead.map(key => key -> allSecrets.get(key)).toMap)
-        } yield secrets
-      }
+      case _ =>
+        Try(amazonClient.getObject(s"$environment.secrets.gdl", secretsFile)).flatMap(s3Object => {
+          Try(Source.fromInputStream(s3Object.getObjectContent).getLines().mkString).flatMap(fileContent => {
+            Try(read[Map[String, String]](fileContent)).map(allSecrets => {
+              allSecrets.filterKeys(key => secretKeysToRead.contains(key))
+            })
+          })
+        })
     }
   }
-
 }
 
 case class Database(database: String,

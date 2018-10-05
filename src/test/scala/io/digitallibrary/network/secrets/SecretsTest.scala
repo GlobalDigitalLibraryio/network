@@ -12,7 +12,6 @@ import java.io.ByteArrayInputStream
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.{S3Object, S3ObjectInputStream}
 import io.digitallibrary.network.UnitSuite
-import io.digitallibrary.network.secrets.Secrets.DBKeys
 import org.apache.http.client.methods.HttpRequestBase
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -40,12 +39,12 @@ class SecretsTest extends UnitSuite {
   }
 
   test("That empty Map is returned when env is local") {
-    new Secrets(amazonClient, "local", "secretsFile", Secrets.DBKeys).readSecrets() should equal (Success(Map()))
+    new Secrets(amazonClient, "local", "secretsFile").readSecrets() should equal (Success(Map()))
   }
 
   test("That Map containing details about database is returned when env is test") {
     when(s3Object.getObjectContent).thenReturn(new S3ObjectInputStream(new ByteArrayInputStream(ValidFileContent.getBytes("UTF-8")), mock[HttpRequestBase]))
-    val secretsAttempt = new Secrets(amazonClient, "test", "secretsFile", Secrets.DBKeys).readSecrets()
+    val secretsAttempt = new Secrets(amazonClient, "test", "secretsFile").readSecrets()
 
     secretsAttempt match {
       case Failure(err) => fail(err)
@@ -56,14 +55,14 @@ class SecretsTest extends UnitSuite {
         secrets(PropertyKeys.MetaServerKey) should equal ("database-host")
         secrets(PropertyKeys.MetaPortKey) should equal ("1234")
         secrets(PropertyKeys.MetaSchemaKey) should equal ("database-schema")
-        secrets.get("GOOGLE_API_KEY") should equal (None)
+        secrets("GOOGLE_API_KEY") should equal ("ABCD1234")
       }
     }
   }
 
   test("That Map containing details about database and API key is returned when env is test") {
     when(s3Object.getObjectContent).thenReturn(new S3ObjectInputStream(new ByteArrayInputStream(ValidFileContent.getBytes("UTF-8")), mock[HttpRequestBase]))
-    val secretsAttempt = new Secrets(amazonClient, "test", "secretsFile", Set("GOOGLE_API_KEY") ++ Secrets.DBKeys).readSecrets()
+    val secretsAttempt = new Secrets(amazonClient, "test", "secretsFile").readSecrets()
 
     secretsAttempt match {
       case Failure(err) => fail(err)
@@ -81,11 +80,11 @@ class SecretsTest extends UnitSuite {
 
   test("That Failure is returned when not able to parse secret content") {
     when(s3Object.getObjectContent).thenReturn(new S3ObjectInputStream(new ByteArrayInputStream("ThouShaltNotParse".getBytes("UTF-8")), mock[HttpRequestBase]))
-    new Secrets(amazonClient, "test", "secretsFile", Secrets.DBKeys).readSecrets().isFailure should be (true)
+    new Secrets(amazonClient, "test", "secretsFile").readSecrets().isFailure should be (true)
   }
 
   test("That Failure is returned when Amazon-problems occur") {
     when(s3Object.getObjectContent).thenThrow(new RuntimeException("AmazonProblem"))
-    new Secrets(amazonClient, "test", "secretsFile", Secrets.DBKeys).readSecrets().isFailure should be (true)
+    new Secrets(amazonClient, "test", "secretsFile").readSecrets().isFailure should be (true)
   }
 }
